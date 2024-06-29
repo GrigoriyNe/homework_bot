@@ -36,12 +36,13 @@ RETRY_PERIOD = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
-
 HOMEWORK_VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
+
+DATEDELTA = 900000
 
 
 def check_tokens():
@@ -57,9 +58,9 @@ def send_message(bot, message):
             TELEGRAM_CHAT_ID,
             message
         )
-        logger.debug('Отправленно в чат {TELEGRAM_CHAT_ID} : {message}')
+        logger.debug('Success send message {TELEGRAM_CHAT_ID} : {message}')
     except Exception:
-        logger.error('Ошибка отправки в чат {TELEGRAM_CHAT_ID} : {message}')
+        logger.error('Error send message {TELEGRAM_CHAT_ID} : {message}')
 
 
 def get_api_answer(timestamp):
@@ -71,25 +72,21 @@ def get_api_answer(timestamp):
                                        params=params
                                        )
     except TypeError:
-        logger.error(
-            'Ошибка при запросе к API: - не верная timestamp'
-        )
-        raise TypeError(
-            'Ошибка при запросе к API: - не верная timestamp'
-        )
+        logger.error('Error answer API: wrorg type')
+        raise TypeError('Ошибка ответа API, TypeError')
     except Exception as error:
-        logger.error(f'Ошибка при запросе к API:{error}')
-        raise Exception(f'Ошибка при запросе к API:{error}')
+        logger.error(f'Error answer API:{error}')
+        raise Exception(f'Ошибка в ответе API:{error}')
 
     if homework_answer.status_code != HTTPStatus.OK:
-        logger.error(f'Ошибка ответа - {homework_answer}')
-        raise Exception(f'Ошибка ответа - {homework_answer}')
+        logger.error(f'Wrong status of answer:{homework_answer}')
+        raise Exception(f'Ошибка в статусе ответа:{homework_answer}')
     try:
-        logger.info('json сформирован успешно')
+        logger.info('json success formed')
         return homework_answer.json()
     except Exception:
-        logger.error('Ошибка при формировании json')
-        raise Exception('Ошибка при формировании json')
+        logger.error('Error created json')
+        raise Exception('Ошибка при создании json')
 
 
 def check_response(response):
@@ -97,32 +94,32 @@ def check_response(response):
     try:
         homework_list = response['homeworks']
     except KeyError:
-        logger.error('В словаре нет ключа homeworks')
-        raise KeyError('В словаре нет ключа homeworks')
+        logger.error('Response don`t have "homeworks"')
+        raise KeyError('Ответ не содержит заданий')
     if type(homework_list) != list:
-        logger.error('В ответе API - не словарь')
-        raise TypeError('В ответе API - не словарь')
+        logger.error('Type response don`t lsit')
+        raise TypeError('Тип списка домашки - не list')
     try:
         homework = homework_list[0]
     except IndexError:
-        logger.error('В словаре нет домашних работ')
-        raise IndexError('В словаре нет домашних работ')
+        logger.error('Homework_list don`t have "homeworks"')
+        raise IndexError('В списке домашинх работ нет домашек')
     return homework
 
 
 def parse_status(homework):
     """Generate answer on chat."""
     if 'homework_name' not in homework:
-        logger.debug('В словаре нет ключа homework_name')
-        raise KeyError('В словаре нет ключа homework_name')
+        logger.debug('Dict don`t have key "homework_name"')
+        raise KeyError('В словаре нет ключа "homework_name"')
     if 'status' not in homework:
-        logger.error('В словаре нет ключа status')
-        raise KeyError('В словаре нет ключа status')
+        logger.error('Dict don`t have key "status"')
+        raise KeyError('В словаре нет ключа "status"')
     homework_name = homework['homework_name']
     homework_verdict = homework['status']
     if homework_verdict not in HOMEWORK_VERDICTS:
-        logger.error('Неопознанный вердикт - {homework_verdict}')
-        raise KeyError('Неопознанный вердикт - {homework_verdict}')
+        logger.error('Wrong verdict: {homework_verdict}')
+        raise KeyError('Вердикт не определён: {homework_verdict}')
     verdict = HOMEWORK_VERDICTS[homework_verdict]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
@@ -133,16 +130,15 @@ def main():
     When cycle is running, not send repeated messages.
     """
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time()) - 1800000
+    timestamp = int(time.time()) - DATEDELTA
     cash_message = ''
     cash_error_message = ''
     if not check_tokens():
-        logger.critical('Отсутствуют одна или несколько переменных окружения')
-        raise Exception('Отсутствуют одна или несколько переменных окружения')
+        logger.critical('One or more environment variables are missing')
+        raise Exception('Один или несколько токенов утеряны')
     while True:
         try:
             response = get_api_answer(timestamp)
-            timestamp = response.get('current_date')
             message = parse_status(check_response(response))
             if message != cash_message:
                 send_message(bot, message)
@@ -150,7 +146,7 @@ def main():
             time.sleep(RETRY_PERIOD)
         except Exception as error:
             message_error = f'Сбой в работе программы: {error}'
-            logger.error(f'Сбой в работе программы: {error}')
+            logger.error(f'Crash of program: {error}')
             if message_error != cash_error_message:
                 send_message(bot, message_error)
                 cash_error_message = message_error
