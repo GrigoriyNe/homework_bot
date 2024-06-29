@@ -45,6 +45,7 @@ HOMEWORK_VERDICTS = {
 
 
 def check_tokens():
+    """Check validity all tokens."""
     if all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         return True
     else:
@@ -53,6 +54,7 @@ def check_tokens():
 
 
 def send_message(bot, message):
+    """Send messages and check validity messages."""
     try:
         bot.send_message(
             TELEGRAM_CHAT_ID,
@@ -65,21 +67,21 @@ def send_message(bot, message):
 
 
 def get_api_answer(timestamp):
+    """."""
     params = {'from_date': timestamp}
     try:
         homework_answer = requests.get(ENDPOINT,
                                        headers=HEADERS,
                                        params=params
                                        )
-
-    except TypeError as error:
+    except TypeError:
         logger.error(
             'Ошибка при запросе к API: - не верная timestamp'
         )
         raise TypeError(
             'Ошибка при запросе к API: - не верная timestamp'
         )
-    except Exception:
+    except Exception as error:
         logger.error(f'Ошибка при запросе к API:{error}')
         raise Exception(f'Ошибка при запросе к API:{error}')
 
@@ -90,22 +92,23 @@ def get_api_answer(timestamp):
     try:
         logger.info('json сформирован успешно')
         return homework_answer.json()
-    except:
+    except Exception:
         logger.error('Ошибка при формировании json')
         raise Exception('Ошибка при формировании json')
 
 
 def check_response(response):
+    """."""
     if type(response) != dict:
         logger.error('В ответе API - не словарь')
         raise TypeError('В ответе API - не словарь')
     try:
-        list_works = response['homeworks']
+        homework_list = response['homeworks']
     except KeyError:
         logger.error('В словаре нет ключа homeworks')
         raise KeyError('Ошибка при формировании json')
     try:
-        homework = list_works[0]
+        homework = homework_list[0]
     except IndexError:
         logger.error('В словаре нет домашних работ')
         raise IndexError('В словаре нет домашних работ')
@@ -113,7 +116,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """"Формируем ответ, для отправки в чат"""
+    """"Формируем ответ, для отправки в чат."""
     if 'homework_name' not in homework:
         logger.error('В словаре нет ключа homework_name')
         raise KeyError('В словаре нет ключа homework_name')
@@ -132,10 +135,10 @@ def parse_status(homework):
 def main():
     """Основная логика работы бота. status и 
     error_message определены в начале функции, что бы
-    избежать отправки повторных сообщений при работе цикла
+    избежать отправки повторных сообщений при работе цикла.
     """
     bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())
+    timestamp = int(time.time()) - 1800000
     cash_message = ''
     cash_error_message = ''
     while True:
