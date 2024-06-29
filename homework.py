@@ -49,6 +49,7 @@ def check_tokens():
     if all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         return True
 
+
 def send_message(bot, message):
     """Send messages and check validity messages."""
     try:
