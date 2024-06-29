@@ -99,7 +99,7 @@ def check_response(response):
         raise TypeError('В ответе API - не словарь')
     try:
         homework_list = response['homeworks']
-    except KeyError: 
+    except KeyError:
         logger.error('В словаре нет ключа homeworks')
         raise KeyError('В словаре нет ключа homeworks')
     try:
