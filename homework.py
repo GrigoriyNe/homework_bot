@@ -48,10 +48,7 @@ def check_tokens():
     """Check validity all tokens."""
     if all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]):
         return True
-    else:
-        logger.critical('Отсутствуют одна или несколько переменных окружения')
-        raise Exception('Отсутствуют одна или несколько переменных окружения')
-
+        
 
 def send_message(bot, message):
     """Send messages and check validity messages."""
@@ -60,7 +57,7 @@ def send_message(bot, message):
             TELEGRAM_CHAT_ID,
             message
         )
-        logger.info('Отправленно в чат {TELEGRAM_CHAT_ID} : {message}')
+        logger.debug('Отправленно в чат {TELEGRAM_CHAT_ID} : {message}')
     except Exception:
         logger.error('Ошибка отправки в чат {TELEGRAM_CHAT_ID} : {message}')
         raise Exception('Ошибка отправки в чат {TELEGRAM_CHAT_ID} : {message}')
@@ -103,9 +100,9 @@ def check_response(response):
         raise TypeError('В ответе API - не словарь')
     try:
         homework_list = response['homeworks']
-    except KeyError:
+    except TypeError:
         logger.error('В словаре нет ключа homeworks')
-        raise KeyError('Ошибка при формировании json')
+        raise TypeError('В словаре нет ключа homeworks')
     try:
         homework = homework_list[0]
     except IndexError:
@@ -117,7 +114,7 @@ def check_response(response):
 def parse_status(homework):
     """Generate answer on chat."""
     if 'homework_name' not in homework:
-        logger.error('В словаре нет ключа homework_name')
+        logger.debug('В словаре нет ключа homework_name')
         raise KeyError('В словаре нет ключа homework_name')
     if 'status' not in homework:
         logger.error('В словаре нет ключа status')
@@ -140,6 +137,9 @@ def main():
     timestamp = int(time.time()) - 1800000
     cash_message = ''
     cash_error_message = ''
+    if not check_tokens():
+        logger.critical('Отсутствуют одна или несколько переменных окружения')
+        raise Exception('Отсутствуют одна или несколько переменных окружения')
     while True:
         try:
             response = get_api_answer(timestamp)
