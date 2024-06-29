@@ -60,7 +60,6 @@ def send_message(bot, message):
         logger.debug('Отправленно в чат {TELEGRAM_CHAT_ID} : {message}')
     except Exception:
         logger.error('Ошибка отправки в чат {TELEGRAM_CHAT_ID} : {message}')
-        raise Exception('Ошибка отправки в чат {TELEGRAM_CHAT_ID} : {message}')
 
 
 def get_api_answer(timestamp):
@@ -95,14 +94,14 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """."""
-    if type(response) != dict:
+    if type(response) is not dict:
         logger.error('В ответе API - не словарь')
         raise TypeError('В ответе API - не словарь')
     try:
         homework_list = response['homeworks']
-    except TypeError:
+    except KeyError: 
         logger.error('В словаре нет ключа homeworks')
-        raise TypeError('В словаре нет ключа homeworks')
+        raise KeyError('В словаре нет ключа homeworks')
     try:
         homework = homework_list[0]
     except IndexError:
