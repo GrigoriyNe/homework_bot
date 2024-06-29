@@ -88,7 +88,6 @@ def get_api_answer(timestamp):
     if homework_answer.status_code != HTTPStatus.OK:
         logger.error(f'Ошибка ответа - {homework_answer}')
         raise Exception(f'Ошибка ответа - {homework_answer}')
-
     try:
         logger.info('json сформирован успешно')
         return homework_answer.json()
@@ -116,7 +115,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """"Формируем ответ, для отправки в чат."""
+    """Generate answer on chat."""
     if 'homework_name' not in homework:
         logger.error('В словаре нет ключа homework_name')
         raise KeyError('В словаре нет ключа homework_name')
@@ -133,9 +132,9 @@ def parse_status(homework):
 
 
 def main():
-    """Основная логика работы бота. status и 
-    error_message определены в начале функции, что бы
-    избежать отправки повторных сообщений при работе цикла.
+    """Main cycle of bot.
+    Status и error_message defined in beginning of the function.
+    When cycle is running, not send repeated messages.
     """
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time()) - 1800000
