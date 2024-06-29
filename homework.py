@@ -94,11 +94,11 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """."""
-    if type(response) is not dict:
-        logger.error('В ответе API - не словарь')
-        raise TypeError('В ответе API - не словарь')
     try:
         homework_list = response['homeworks']
+    except TypeError:
+        logger.error('В ответе API - не словарь')
+        raise TypeError('В ответе API - не словарь')
     except KeyError:
         logger.error('В словаре нет ключа homeworks')
         raise KeyError('В словаре нет ключа homeworks')
