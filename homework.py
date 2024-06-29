@@ -96,12 +96,12 @@ def check_response(response):
     """."""
     try:
         homework_list = response['homeworks']
-    except TypeError:
-        logger.error('В ответе API - не словарь')
-        raise TypeError('В ответе API - не словарь')
     except KeyError:
         logger.error('В словаре нет ключа homeworks')
         raise KeyError('В словаре нет ключа homeworks')
+    if homework_list is not dict:
+        logger.error('В ответе API - не словарь')
+        raise TypeError('В ответе API - не словарь')
     try:
         homework = homework_list[0]
     except IndexError:
