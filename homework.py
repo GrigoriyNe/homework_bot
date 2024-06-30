@@ -53,37 +53,71 @@ def check_tokens():
 
 def send_message(bot, message):
     """Send messages and check validity messages."""
-    bot.send_message(
-        TELEGRAM_CHAT_ID,
-        message
-    )
+    try:
+        bot.send_message(
+            TELEGRAM_CHAT_ID,
+            message
+        )
+        logger.debug('Success send message')
+    except Exception:
+        logger.error('Error send message {TELEGRAM_CHAT_ID} : {message}')
 
 
 def get_api_answer(timestamp):
     """."""
     params = {'from_date': timestamp}
-    response = requests.get(
-        ENDPOINT,
-        headers=HEADERS,
-        params=params
-    )
-    return response
+    try:
+        homework_answer = requests.get(
+            ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
+    except TypeError:
+        raise TypeError('Ошибка ответа API, TypeError')
+    except Exception as error:
+        raise Exception(f'Ошибка в ответе API:{error}')
+
+    if homework_answer.status_code != HTTPStatus.OK:
+        raise Exception(f'Ошибка в статусе ответа:{homework_answer}')
+    else:
+        return homework_answer.json()
 
 
 def check_response(response):
     """."""
-    homework_list = response['homeworks']
-    return homework_list
+    try:
+        homework_list = response['homeworks']
+    except KeyError:
+        logger.error('Response don`t have "homeworks"')
+        raise KeyError('Ответ не содержит заданий')
+    if type(homework_list) != list:
+        logger.error('Type response don`t lsit')
+        raise TypeError('Тип списка домашки - не list')
+    try:
+        homework = homework_list[0]
+    except IndexError:
+        logger.error('Homework_list don`t have "homeworks"')
+        raise IndexError('В списке домашинх работ нет домашек')
+    return homework
 
 
 def parse_status(homework):
     """Generate answer on chat."""
+    if 'homework_name' not in homework:
+        logger.debug('Dict don`t have key "homework_name"')
+        raise KeyError('В словаре нет ключа "homework_name"')
+    if 'status' not in homework:
+        logger.error('Dict don`t have key "status"')
+        raise KeyError('В словаре нет ключа "status"')
     homework_name = homework['homework_name']
-    verdict = HOMEWORK_VERDICTS[homework['status']]
+    homework_verdict = homework['status']
+    if homework_verdict not in HOMEWORK_VERDICTS:
+        logger.error('Wrong verdict: {homework_verdict}')
+        raise KeyError('Вердикт не определён: {homework_verdict}')
+    verdict = HOMEWORK_VERDICTS[homework_verdict]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-# flake8: noqa: C901
 def main():
     """Main cycle of bot.
     Status и error_message defined in beginning of the function.
@@ -99,64 +133,27 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            timestamp = response.json().get(
-                'current_date', int(time.time())
-            )
-            if response.status_code != HTTPStatus.OK:
-                logger.error(
-                    f'Wrong status of answer:{response.status_code}'
-                )
-                raise Exception(
-                    f'Ошибка в статусе ответа:{response.status_code}'
-                )
         except TypeError:
             logger.error('Error answer API: wrorg type')
-            raise TypeError('Ошибка ответа API, TypeError')
         except Exception as error:
             logger.error(f'Error answer API:{error}')
-            raise Exception(f'Ошибка в ответе API:{error}')
+        except  HTTPStatus != HTTPStatus.OK:
+            logger.error(f'Wrong status of answer:{HTTPStatus}')
+
         try:
-            homework_list = check_response(response.json())
-            if type(homework_list) != list:
-                logger.error('Type response don`t lsit')
-                raise TypeError('Тип списка домашки - не list')
-        except KeyError:
-            logger.error('Response don`t have "homeworks"')
-            raise KeyError('Ответ не содержит заданий')
-        except IndexError:
-            logger.error('Homework_list don`t have "homeworks"')
-            raise IndexError('В списке домашинх работ нет домашек')
-        try:
-            message = parse_status(homework_list[0])
-            if 'homework_name' not in homework_list[0]:
-                logger.debug('List don`t have key "homework_name"')
-                raise KeyError('В списке нет ключа "homework_name"')
-            if 'status' not in homework_list[0]:
-                logger.error('List don`t have key "status"')
-                raise KeyError('В списке нет ключа "status"')
-            if homework_list[0]['status'] not in HOMEWORK_VERDICTS:
-                logger.error('Wrong verdict: {homework_verdict}')
-                raise KeyError('Вердикт не определён: {homework_verdict}')
+            message = parse_status(check_response(response))
+            timestamp = response.get(
+                'current_date', int(time.time())
+            )
             if message != previous_message:
-                try:
-                    send_message(bot, message)
-                    previous_message = message
-                    logger.debug('Success send message')
-                except Exception:
-                    logger.error(
-                        'Error send message {TELEGRAM_CHAT_ID} : {message}'
-                    )
+                send_message(bot, message)
+                previous_message = message
         except Exception as error:
             message_error = f'Сбой в работе программы: {error}'
             logger.error(f'Crash of program: {error}')
             if message_error != previous_error_message:
-                try:
-                    send_message(bot, message_error)
-                    previous_error_message = message_error
-                except Exception:
-                    logger.error(
-                        'Error send message {TELEGRAM_CHAT_ID} : {message}'
-                    )
+                send_message(bot, message_error)
+                previous_error_message = message_error
         finally:
             time.sleep(RETRY_PERIOD)
 
