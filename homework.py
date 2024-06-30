@@ -136,18 +136,12 @@ def main():
                     logger.error(
                         'Error send message {TELEGRAM_CHAT_ID} : {message}'
                     )
-
         except Exception as error:
             logging.error(error, exc_info=True)
             message_error = f'Сбой в работе программы: {error}'
             if message_error != previous_error_message:
-                try:
-                    send_message(bot, message_error)
-                    previous_error_message = message_error
-                except Exception:
-                    logger.error(
-                        'Error send message {TELEGRAM_CHAT_ID} : {message}'
-                    )
+                send_message(bot, message_error)
+                previous_error_message = message_error
         finally:
             time.sleep(RETRY_PERIOD)
 
