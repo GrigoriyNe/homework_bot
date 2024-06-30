@@ -53,11 +53,12 @@ def check_tokens():
 
 def send_message(bot, message):
     """Send messages and check validity messages."""
-    bot.send_message(
-        TELEGRAM_CHAT_ID,
-        message
-    )
-    logger.debug('Success send message')
+    try:
+        bot.send_message(
+            TELEGRAM_CHAT_ID,
+            message
+        )
+        logger.debug('Success send message')
 
 
 def get_api_answer(timestamp):
@@ -131,11 +132,6 @@ def main():
             if message != previous_message:
                 send_message(bot, message)
                 previous_message = message
-        except Exception:
-            logger.error(
-                'Error send message {TELEGRAM_CHAT_ID} : {message}'
-            )
-
         except Exception as error:
             logging.error(error, exc_info=True)
             message_error = f'Сбой в работе программы: {error}'
