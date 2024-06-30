@@ -86,14 +86,14 @@ def check_response(response):
             homework_list = response['homeworks']
         except KeyError:
             raise KeyError('Ответ не содержит заданий')
-    if type(response) != dict:
-        raise TypeError('Тип словаря домашки - не dict')
     if type(homework_list) != list:
         raise TypeError('Тип списка домашки - не list')
     try:
         homework = homework_list[0]
     except IndexError:
         raise IndexError('В списке домашинх работ нет домашек')
+    if type(homework) != dict:
+        raise TypeError('Тип словаря домашки - не dict')
     return homework
 
 
