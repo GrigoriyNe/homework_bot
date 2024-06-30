@@ -137,7 +137,7 @@ def main():
             logger.error('Error answer API: wrorg type')
         except Exception as error:
             logger.error(f'Error answer API:{error}')
-        except  HTTPStatus != HTTPStatus.OK:
+        except HTTPStatus != HTTPStatus.OK:
             logger.error(f'Wrong status of answer:{HTTPStatus}')
 
         try:
