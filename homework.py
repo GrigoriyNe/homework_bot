@@ -76,7 +76,6 @@ def get_api_answer(timestamp):
         raise TypeError('Ошибка ответа API, TypeError')
     except Exception as error:
         raise Exception(f'Ошибка в ответе API:{error}')
-
     if homework_answer.status_code != HTTPStatus.OK:
         raise Exception(f'Ошибка в статусе ответа:{homework_answer}')
     else:
@@ -133,12 +132,8 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-        except TypeError:
-            logger.error('Error answer API: wrorg type')
-        except Exception as error:
-            logger.error(f'Error answer API:{error}')
-        except HTTPStatus != HTTPStatus.OK:
-            logger.error(f'Wrong status of answer:{HTTPStatus}')
+        except Exception:
+            logging.error(error, exc_info=True)
 
         try:
             message = parse_status(check_response(response))
