@@ -72,7 +72,7 @@ def get_api_answer(timestamp):
             headers=HEADERS,
             params=params
         )
-    except TypeError:
+    except TypeError as error:
         raise TypeError('Ошибка ответа API, TypeError')
     except Exception as error:
         raise Exception(f'Ошибка в ответе API:{error}')
@@ -86,16 +86,13 @@ def check_response(response):
     """."""
     try:
         homework_list = response['homeworks']
-    except KeyError:
-        logger.error('Response don`t have "homeworks"')
+    except KeyError as error:
         raise KeyError('Ответ не содержит заданий')
-    if type(homework_list) != list:
-        logger.error('Type response don`t lsit')
+    except type(homework_list) != list:
         raise TypeError('Тип списка домашки - не list')
     try:
         homework = homework_list[0]
-    except IndexError:
-        logger.error('Homework_list don`t have "homeworks"')
+    except IndexError as error:
         raise IndexError('В списке домашинх работ нет домашек')
     return homework
 
@@ -106,12 +103,10 @@ def parse_status(homework):
         logger.debug('Dict don`t have key "homework_name"')
         raise KeyError('В словаре нет ключа "homework_name"')
     if 'status' not in homework:
-        logger.error('Dict don`t have key "status"')
         raise KeyError('В словаре нет ключа "status"')
     homework_name = homework['homework_name']
     homework_verdict = homework['status']
     if homework_verdict not in HOMEWORK_VERDICTS:
-        logger.error('Wrong verdict: {homework_verdict}')
         raise KeyError('Вердикт не определён: {homework_verdict}')
     verdict = HOMEWORK_VERDICTS[homework_verdict]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -132,10 +127,6 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-        except Exception as error:
-            logging.error(error, exc_info=True)
-
-        try:
             message = parse_status(check_response(response))
             timestamp = response.get(
                 'current_date', int(time.time())
@@ -144,6 +135,7 @@ def main():
                 send_message(bot, message)
                 previous_message = message
         except Exception as error:
+            logging.error(error, exc_info=True)
             message_error = f'Сбой в работе программы: {error}'
             logger.error(f'Crash of program: {error}')
             if message_error != previous_error_message:
