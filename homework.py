@@ -82,7 +82,7 @@ def get_api_answer(timestamp):
 def check_response(response):
     """."""
     if homework_list := response.get('homeworks'):
-        pass
+        homework_list=response['homeworks']
     else:
         raise KeyError('Ответ не содержит заданий')
     if type(homework_list) != list:
@@ -115,6 +115,7 @@ def main():
     When cycle is running, not send repeated messages.
     """
     if not check_tokens():
+        logger.critical('One or more environment variables are missing')
         raise Exception('Один или несколько токенов утеряны')
     bot = TeleBot(token=TELEGRAM_TOKEN)
     timestamp = FIRST_TIMESTAMP
