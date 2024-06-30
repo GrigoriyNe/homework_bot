@@ -82,7 +82,7 @@ def get_api_answer(timestamp):
 def check_response(response):
     """."""
     if homework_list := response.get('homeworks'):
-        homework_list=response['homeworks']
+        homework_list = response['homeworks']
     else:
         raise KeyError('Ответ не содержит заданий')
     if type(homework_list) != list:
