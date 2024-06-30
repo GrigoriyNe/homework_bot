@@ -53,14 +53,11 @@ def check_tokens():
 
 def send_message(bot, message):
     """Send messages and check validity messages."""
-    try:
-        bot.send_message(
-            TELEGRAM_CHAT_ID,
-            message
-        )
-        logger.debug('Success send message')
-    except Exception:
-        logger.error('Error send message {TELEGRAM_CHAT_ID} : {message}')
+    bot.send_message(
+        TELEGRAM_CHAT_ID,
+        message
+    )
+    logger.debug('Success send message')
 
 
 def get_api_answer(timestamp):
@@ -72,7 +69,7 @@ def get_api_answer(timestamp):
             headers=HEADERS,
             params=params
         )
-    except TypeError as error:
+    except TypeError:
         raise TypeError('Ошибка ответа API, TypeError')
     except Exception as error:
         raise Exception(f'Ошибка в ответе API:{error}')
@@ -86,13 +83,13 @@ def check_response(response):
     """."""
     try:
         homework_list = response['homeworks']
-    except KeyError as error:
+    except KeyError:
         raise KeyError('Ответ не содержит заданий')
     except type(homework_list) != list:
         raise TypeError('Тип списка домашки - не list')
     try:
         homework = homework_list[0]
-    except IndexError as error:
+    except IndexError:
         raise IndexError('В списке домашинх работ нет домашек')
     return homework
 
@@ -134,6 +131,11 @@ def main():
             if message != previous_message:
                 send_message(bot, message)
                 previous_message = message
+        except Exception:
+            logger.error(
+                'Error send message {TELEGRAM_CHAT_ID} : {message}'
+            )
+
         except Exception as error:
             logging.error(error, exc_info=True)
             message_error = f'Сбой в работе программы: {error}'
