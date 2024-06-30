@@ -81,7 +81,6 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """."""
-
     if homework_list := response.get['homeworks']:
         if type(homework_list) != list:
             raise TypeError('Тип списка домашки - не list')
