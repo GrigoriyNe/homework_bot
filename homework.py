@@ -11,11 +11,11 @@ from telebot import TeleBot
 
 load_dotenv()
 logging.basicConfig(
-        level=logging.DEBUG,
-        filename='main.log',
-        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-        filemode='w',
-    )
+    level=logging.DEBUG,
+    filename='main.log',
+    format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+    filemode='w',
+)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = RotatingFileHandler(
@@ -98,47 +98,38 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
+            timestamp = response.json().get(
+                'current_date', int(time.time())
+            )
+            if response.status_code != HTTPStatus.OK:
+                logger.error(f'Wrong status of answer:{response}')
+                raise Exception(f'Ошибка в статусе ответа:{response}')
         except TypeError:
             logger.error('Error answer API: wrorg type')
             raise TypeError('Ошибка ответа API, TypeError')
         except Exception as error:
             logger.error(f'Error answer API:{error}')
             raise Exception(f'Ошибка в ответе API:{error}')
-        if response.status_code != HTTPStatus.OK:
-            logger.error(f'Wrong status of answer:{response}')
-            raise Exception(f'Ошибка в статусе ответа:{response}')
         try:
-            response_json = response.json()
-            logger.info('json success formed')
-            timestamp = response_json.get(
-                'current_date', int(time.time())
-            )
-        except Exception:
-            logger.error('Error created json')
-            raise Exception('Ошибка при создании json')
-        try:
-            homework_list = check_response(response_json)
-            homework = homework_list[0]
+            homework_list = check_response(response.json())
+            if type(homework_list) != list:
+                logger.error('Type response don`t lsit')
+                raise TypeError('Тип списка домашки - не list')
         except KeyError:
             logger.error('Response don`t have "homeworks"')
             raise KeyError('Ответ не содержит заданий')
         except IndexError:
             logger.error('Homework_list don`t have "homeworks"')
             raise IndexError('В списке домашинх работ нет домашек')
-        if type(homework_list) != list:
-            logger.error('Type response don`t lsit')
-            raise TypeError('Тип списка домашки - не list')
         try:
-            message = parse_status(homework)
-            homework_verdict = homework['status']
-
-            if 'homework_name' not in homework:
-                logger.debug('Dict don`t have key "homework_name"')
-                raise KeyError('В словаре нет ключа "homework_name"')
-            if 'status' not in homework:
-                logger.error('Dict don`t have key "status"')
-                raise KeyError('В словаре нет ключа "status"')
-            if homework_verdict not in HOMEWORK_VERDICTS:
+            message = parse_status(homework_list[0])
+            if 'homework_name' not in homework_list[0]:
+                logger.debug('List don`t have key "homework_name"')
+                raise KeyError('В списке нет ключа "homework_name"')
+            if 'status' not in homework_list[0]:
+                logger.error('List don`t have key "status"')
+                raise KeyError('В списке нет ключа "status"')
+            if homework_list[0]['status'] not in HOMEWORK_VERDICTS:
                 logger.error('Wrong verdict: {homework_verdict}')
                 raise KeyError('Вердикт не определён: {homework_verdict}')
             if message != previous_message:
