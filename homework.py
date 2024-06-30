@@ -82,9 +82,10 @@ def get_api_answer(timestamp):
 def check_response(response):
     """."""
     if homework_list := response.get('homeworks'):
-        homework_list = response['homeworks']
-    else:
-        raise KeyError('Ответ не содержит заданий')
+        try:
+            homework_list = response['homeworks']
+        except KeyError:
+            raise KeyError('Ответ не содержит заданий')
     if type(response) != dict:
         raise TypeError('Тип словаря домашки - не dict')
     if type(homework_list) != list:
