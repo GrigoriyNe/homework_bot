@@ -132,7 +132,7 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-        except Exception:
+        except Exception as error:
             logging.error(error, exc_info=True)
 
         try:
