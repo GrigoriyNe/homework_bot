@@ -83,7 +83,8 @@ def parse_status(homework):
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-def main(): # noqa: C901
+# flake8: noqa: C901
+def main():
     """Main cycle of bot.
     Status и error_message defined in beginning of the function.
     When cycle is running, not send repeated messages.
