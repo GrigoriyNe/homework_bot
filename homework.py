@@ -10,6 +10,24 @@ from telebot import TeleBot
 
 
 load_dotenv()
+logging.basicConfig(
+        level=logging.DEBUG,
+        filename='main.log',
+        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
+        filemode='w',
+    )
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = RotatingFileHandler(
+    'my_logger.log',
+    maxBytes=50000000,
+    backupCount=5
+)
+logger.addHandler(handler)
+formatter = logging.Formatter(
+    '%(asctime)s, %(levelname)s, %(message)s, %(name)s'
+)
+handler.setFormatter(formatter)
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
@@ -90,13 +108,16 @@ def main():
             logger.error(f'Wrong status of answer:{response}')
             raise Exception(f'Ошибка в статусе ответа:{response}')
         try:
-            response = response.json()
+            response_json = response.json()
             logger.info('json success formed')
+            timestamp = response_json.get(
+                'current_date', int(time.time())
+            )
         except Exception:
             logger.error('Error created json')
             raise Exception('Ошибка при создании json')
         try:
-            homework_list = check_response(response)
+            homework_list = check_response(response_json)
             homework = homework_list[0]
         except KeyError:
             logger.error('Response don`t have "homeworks"')
@@ -110,9 +131,7 @@ def main():
         try:
             message = parse_status(homework)
             homework_verdict = homework['status']
-            timestamp = response.get(
-                'current_date', int(time.time())
-            )
+
             if 'homework_name' not in homework:
                 logger.debug('Dict don`t have key "homework_name"')
                 raise KeyError('В словаре нет ключа "homework_name"')
@@ -147,22 +166,4 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(
-        level=logging.DEBUG,
-        filename='main.log',
-        format='%(asctime)s, %(levelname)s, %(message)s, %(name)s',
-        filemode='w',
-    )
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = RotatingFileHandler(
-    'my_logger.log',
-    maxBytes=50000000,
-    backupCount=5
-)
-logger.addHandler(handler)
-formatter = logging.Formatter(
-    '%(asctime)s, %(levelname)s, %(message)s, %(name)s'
-)
-handler.setFormatter(formatter)
-main()
+    main()
