@@ -81,10 +81,11 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """."""
-    try:
-        homework_list = response['homeworks']
-    except KeyError:
-        raise KeyError('Ответ не содержит заданий')
+    if v := response.get('homeworks'):
+        try:
+            homework_list = response['homeworks']
+        except KeyError:
+            raise KeyError('Ответ не содержит заданий')
     if type(homework_list) != list:
         raise TypeError('Тип списка домашки - не list')
     try:
