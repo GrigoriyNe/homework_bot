@@ -85,6 +85,8 @@ def check_response(response):
         homework_list = response['homeworks']
     else:
         raise KeyError('Ответ не содержит заданий')
+    if type(response) != dict:
+        raise TypeError('Тип словаря домашки - не dict')
     if type(homework_list) != list:
         raise TypeError('Тип списка домашки - не list')
     try:
