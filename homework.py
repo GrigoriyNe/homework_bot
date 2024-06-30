@@ -83,7 +83,7 @@ def parse_status(homework):
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-def main():
+def main(): # noqa: C901
     """Main cycle of bot.
     Status и error_message defined in beginning of the function.
     When cycle is running, not send repeated messages.
@@ -102,8 +102,12 @@ def main():
                 'current_date', int(time.time())
             )
             if response.status_code != HTTPStatus.OK:
-                logger.error(f'Wrong status of answer:{response}')
-                raise Exception(f'Ошибка в статусе ответа:{response}')
+                logger.error(
+                    f'Wrong status of answer:{response.status_code}'
+                )
+                raise Exception(
+                    f'Ошибка в статусе ответа:{response.status_code}'
+                )
         except TypeError:
             logger.error('Error answer API: wrorg type')
             raise TypeError('Ошибка ответа API, TypeError')
