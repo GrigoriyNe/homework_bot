@@ -89,6 +89,8 @@ def check_response(response):
         raise KeyError('Ответ не содержит заданий')
     if not isinstance(homeworks, list):
         raise TypeError('Тип списка домашки - не list')
+    if not isinstance(homeworks[0], dict):
+        raise TypeError('Тип домашки - не dict')
     return homeworks[0]
 
 
