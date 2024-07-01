@@ -89,11 +89,11 @@ def check_response(response):
         raise KeyError('Ответ не содержит заданий')
     if not isinstance(homeworks, list):
         raise TypeError('Тип списка домашки - не list')
-    try: 
-        homework = homeworks[0] 
-    except IndexError: 
-        raise IndexError('В списке домашинх работ нет домашек') 
-    return homework 
+    try:
+        homework = homeworks[0]
+    except IndexError:
+        raise IndexError('В списке домашинх работ нет домашек')
+    return homework
 
 
 def parse_status(homework):
