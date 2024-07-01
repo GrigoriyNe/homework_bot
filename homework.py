@@ -53,38 +53,34 @@ def check_tokens():
 
 def send_message(bot, message):
     """Send messages and check validity messages."""
-    try:
-        bot.send_message(
-            TELEGRAM_CHAT_ID,
-            message
-        )
-        logger.debug('Success send message')
-    except Exception:
-        logger.error(
-            'Error send message {TELEGRAM_CHAT_ID} : {message}'
-        )
+    bot.send_message(
+        TELEGRAM_CHAT_ID,
+        message
+    )
+    logger.debug('Success send message')
 
 
 def get_api_answer(timestamp):
-    """Docstring to pass tests.
-    The name of the function speaks about the essence
-    """
+    """."""
     params = {'from_date': timestamp}
     try:
-        response = requests.get(
+        homework_answer = requests.get(
             ENDPOINT,
             headers=HEADERS,
             params=params
         )
+    except TypeError:
+        raise TypeError('Ошибка ответа API, TypeError')
     except Exception as error:
         raise Exception(f'Ошибка в ответе API:{error}')
-    if response.status_code != HTTPStatus.OK:
-        raise Exception(f'Ошибка в статусе ответа:{response}')
-    return response.json()
+    if homework_answer.status_code != HTTPStatus.OK:
+        raise Exception(f'Ошибка в статусе ответа:{homework_answer}')
+    else:
+        return homework_answer.json()
 
 
 def check_response(response):
-    """Docstring to pass tests."""
+    """."""
     if (homeworks := response.get('homeworks')) is None:
         raise KeyError('Ответ не содержит заданий')
     if not isinstance(homeworks, list):
@@ -98,14 +94,16 @@ def check_response(response):
 
 def parse_status(homework):
     """Generate answer on chat."""
-    if (homework_name := homework.get('homework_name')) is None:
-        logger.debug('Dict don`t have key {homework_name}')
-        raise KeyError('В словаре нет ключа {homework_name}')
-    if (status := homework.get('status')) is None:
-        raise KeyError(f'В словаре нет ключа {status}')
-    if status not in HOMEWORK_VERDICTS:
+    if 'homework_name' not in homework:
+        logger.debug('Dict don`t have key "homework_name"')
+        raise KeyError('В словаре нет ключа "homework_name"')
+    if 'status' not in homework:
+        raise KeyError('В словаре нет ключа "status"')
+    homework_name = homework['homework_name']
+    homework_verdict = homework['status']
+    if homework_verdict not in HOMEWORK_VERDICTS:
         raise KeyError('Вердикт не определён: {homework_verdict}')
-    verdict = HOMEWORK_VERDICTS[status]
+    verdict = HOMEWORK_VERDICTS[homework_verdict]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -126,19 +124,22 @@ def main():
             response = get_api_answer(timestamp)
             message = parse_status(check_response(response))
             timestamp = response.get(
-                timestamp, int(time.time())
+                'current_date', int(time.time())
             )
-            if message == previous_message:
-                continue
-            send_message(bot, message)
-            previous_message = message
+            if message != previous_message:
+                try:
+                    send_message(bot, message)
+                    previous_message = message
+                except Exception:
+                    logger.error(
+                        'Error send message {TELEGRAM_CHAT_ID} : {message}'
+                    )
         except Exception as error:
             logging.error(error, exc_info=True)
             message_error = f'Сбой в работе программы: {error}'
-            if message_error == previous_error_message:
-                continue
-            send_message(bot, message_error)
-            previous_error_message = message_error
+            if message_error != previous_error_message:
+                send_message(bot, message_error)
+                previous_error_message = message_error
         finally:
             time.sleep(RETRY_PERIOD)
 
