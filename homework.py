@@ -81,14 +81,12 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """."""
-    try:
-        homework_list = response['homeworks']
-    except KeyError:
+    if (homeworks := response.get('homeworks')) is None:
         raise KeyError('Ответ не содержит заданий')
-    if type(homework_list) != list:
+    if not isinstance(homeworks, list):
         raise TypeError('Тип списка домашки - не list')
     try:
-        homework = homework_list[0]
+        homework = homeworks[0]
     except IndexError:
         raise IndexError('В списке домашинх работ нет домашек')
     return homework
@@ -101,11 +99,11 @@ def parse_status(homework):
         raise KeyError('В словаре нет ключа "homework_name"')
     if 'status' not in homework:
         raise KeyError('В словаре нет ключа "status"')
-    homework_name = homework['homework_name']
-    homework_verdict = homework['status']
+    homework_name=homework['homework_name']
+    homework_verdict=homework['status']
     if homework_verdict not in HOMEWORK_VERDICTS:
         raise KeyError('Вердикт не определён: {homework_verdict}')
-    verdict = HOMEWORK_VERDICTS[homework_verdict]
+    verdict=HOMEWORK_VERDICTS[homework_verdict]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -117,31 +115,31 @@ def main():
     if not check_tokens():
         logger.critical('One or more environment variables are missing')
         raise Exception('Один или несколько токенов утеряны')
-    bot = TeleBot(token=TELEGRAM_TOKEN)
-    timestamp = FIRST_TIMESTAMP
-    previous_message = ''
-    previous_error_message = ''
+    bot=TeleBot(token=TELEGRAM_TOKEN)
+    timestamp=FIRST_TIMESTAMP
+    previous_message=''
+    previous_error_message=''
     while True:
         try:
-            response = get_api_answer(timestamp)
-            message = parse_status(check_response(response))
-            timestamp = response.get(
+            response=get_api_answer(timestamp)
+            message=parse_status(check_response(response))
+            timestamp=response.get(
                 'current_date', int(time.time())
             )
             if message != previous_message:
                 try:
                     send_message(bot, message)
-                    previous_message = message
+                    previous_message=message
                 except Exception:
                     logger.error(
                         'Error send message {TELEGRAM_CHAT_ID} : {message}'
                     )
         except Exception as error:
             logging.error(error, exc_info=True)
-            message_error = f'Сбой в работе программы: {error}'
+            message_error=f'Сбой в работе программы: {error}'
             if message_error != previous_error_message:
                 send_message(bot, message_error)
-                previous_error_message = message_error
+                previous_error_message=message_error
         finally:
             time.sleep(RETRY_PERIOD)
 
