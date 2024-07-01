@@ -85,9 +85,11 @@ def get_api_answer(timestamp):
 
 def check_response(response):
     """Docstring to pass tests."""
-    if (homeworks := response.get('homeworks')) is None:
+    try: 
+        homeworks = response['homeworks'] 
+    except KeyError: 
         raise KeyError('Ответ не содержит заданий')
-    if type(homeworks) != list:
+    if not isinstance(homeworks, list):
         raise TypeError('Тип списка домашки - не list')
     try:
         homework = homeworks[0]
