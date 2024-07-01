@@ -87,10 +87,13 @@ def check_response(response):
     """Docstring to pass tests."""
     if (homeworks := response.get('homeworks')) is None:
         raise KeyError('Ответ не содержит заданий')
-    homework = homeworks[0]
-    if not isinstance(homework, dict):
-        raise TypeError('Тип  домашки - не dict')
-    return homework
+    if not isinstance(homeworks, list):
+        raise TypeError('Тип списка домашки - не list')
+    try: 
+        homework = homeworks[0] 
+    except IndexError: 
+        raise IndexError('В списке домашинх работ нет домашек') 
+    return homework 
 
 
 def parse_status(homework):
