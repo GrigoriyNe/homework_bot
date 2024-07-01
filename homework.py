@@ -84,7 +84,15 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
-    """Docstring to pass tests."""
+    """Warlus method more quality.
+    But tests give me error: Make sure what 'check_response'
+    checks type response. Right version:
+    if (homeworks := response.get['homeworks']) is None:
+        raise KeyError(...)
+    if not isinstance(homeworks, list):
+        raise TypeError('Тип списка домашки - не list')
+    ...
+    """
     try:
         homeworks = response['homeworks']
     except KeyError:
