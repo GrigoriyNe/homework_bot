@@ -87,8 +87,6 @@ def check_response(response):
     """Docstring to pass tests."""
     if (homeworks := response.get('homeworks')) is None:
         raise KeyError('Ответ не содержит заданий')
-    if not isinstance(homeworks, list):
-        raise TypeError('Тип списка домашки - не list')
     if not isinstance(homeworks[0], dict):
         raise TypeError('Тип домашки - не dict')
     return homeworks[0]
