@@ -66,7 +66,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(timestamp):
-    """Docstring to pass tests. 
+    """Docstring to pass tests.
     The name of the function speaks about the essence
     """
     params = {'from_date': timestamp}
@@ -84,7 +84,7 @@ def get_api_answer(timestamp):
 
 
 def check_response(response):
-    """."""
+    """Docstring to pass tests."""
     if (homeworks := response.get('homeworks')) is None:
         raise KeyError('Ответ не содержит заданий')
     if not isinstance(homeworks, list):
@@ -128,7 +128,6 @@ def main():
                 continue
             send_message(bot, message)
             previous_message = message
-
         except Exception as error:
             logging.error(error, exc_info=True)
             message_error = f'Сбой в работе программы: {error}'
