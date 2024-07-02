@@ -135,9 +135,7 @@ def main():
         try:
             response = get_api_answer(timestamp)
             message = parse_status(check_response(response))
-            timestamp = response.get(
-                timestamp, int(time.time())
-            )
+            timestamp = response.get('current_date', timestamp)
             if message == previous_message:
                 continue
             send_message(bot, message)
